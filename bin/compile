@@ -127,9 +127,9 @@ download_sfdocs_build_config() {
   local package_json_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/package.json"
   local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/yarn.lock"
   local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
-  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/file-sync.js"
-  local file_exec_process_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/exec-process.js"
-  local git_commands_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/git-commands.sh"
+  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/ht/file-sync/file-sync.js"
+  local file_exec_process_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/ht/file-sync/exec-process.js"
+  local git_commands_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/ht/file-sync/git-commands.sh"
   local vscode_settings_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/.vscode/settings.json"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
@@ -140,14 +140,14 @@ download_sfdocs_build_config() {
   rm -f $BUILD_DIR/yarn.lock
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
-  mkdir -p ${BUILD_DIR}/utilities/.vscode
-  download_config_file "${package_json_file_url}" "utilities/package.json"
-  download_config_file "${yarn_lock_file_url}" "utilities/yarn.lock"
+  mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config/.vscode
+  download_config_file "${package_json_file_url}" "sfdocs-repo-build-config/package.json"
+  download_config_file "${yarn_lock_file_url}" "sfdocs-repo-build-config/yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
-  download_config_file "${file_sync_file_url}" "utilities/file-sync.js"
-  download_config_file "${file_exec_process_file_url}" "utilities/exec-process.js"
-  download_config_file "${git_commands_file_url}" "utilities/git-commands.sh"
-  download_config_file "${vscode_settings_file_url}" "utilities/.vscode/settings.json"
+  download_config_file "${file_sync_file_url}" "sfdocs-repo-build-config/file-sync.js"
+  download_config_file "${file_exec_process_file_url}" "sfdocs-repo-build-config/exec-process.js"
+  download_config_file "${git_commands_file_url}" "sfdocs-repo-build-config/git-commands.sh"
+  download_config_file "${vscode_settings_file_url}" "sfdocs-repo-build-config/.vscode/settings.json"
 }
 
 download_sfdocs_build_config
