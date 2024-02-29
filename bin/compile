@@ -129,6 +129,7 @@ download_sfdocs_build_config() {
   local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
   local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/file-sync.js"
   local file_exec_process_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/exec-process.js"
+  local git_commands_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/git-commands.sh"
   local vscode_settings_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/.vscode/settings.json"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
@@ -145,6 +146,7 @@ download_sfdocs_build_config() {
   download_config_file "${puge_cache_file_url}" "purge.sh"
   download_config_file "${file_sync_file_url}" "utilities/file-sync.js"
   download_config_file "${file_exec_process_file_url}" "utilities/exec-process.js"
+  download_config_file "${git_commands_file_url}" "utilities/git-commands.sh"
   download_config_file "${vscode_settings_file_url}" "utilities/.vscode/settings.json"
 }
 
