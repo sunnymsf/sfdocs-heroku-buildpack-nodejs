@@ -134,7 +134,7 @@ download_sfdocs_build_config() {
   fi
   # Removing package.json and yarn.lock that comes from repo before downloading 
   # it from sfdocs-repo-build-config
-  rm -f $BUILD_DIR/package.json $BUILD_DIR/yarn.lock
+  rm -f $BUILD_DIR/yarn.lock
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
   download_config_file "${package_json_file_url}" "tmp/package.json"
