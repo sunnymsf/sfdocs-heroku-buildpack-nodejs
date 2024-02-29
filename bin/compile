@@ -128,26 +128,23 @@ download_sfdocs_build_config() {
   local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/yarn.lock"
   local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
   local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/ht/file-sync/file-sync.js"
-  local file_exec_process_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/ht/file-sync/exec-process.js"
-  local git_commands_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/ht/file-sync/git-commands.sh"
-  local vscode_settings_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/.vscode/settings.json"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
     return
   fi
-  # Removing package.json and yarn.lock that comes from repo before downloading 
+  # Removing yarn.lock that comes from repo before downloading 
   # it from sfdocs-repo-build-config
   rm -f $BUILD_DIR/yarn.lock
 
+  # Creating a directory before dowloading the configuration from sfdocs-repo-build-config github repository
+  mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config
+
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
-  mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config/.vscode
+
   download_config_file "${package_json_file_url}" "sfdocs-repo-build-config/package.json"
   download_config_file "${yarn_lock_file_url}" "yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
   download_config_file "${file_sync_file_url}" "sfdocs-repo-build-config/file-sync.js"
-  #download_config_file "${file_exec_process_file_url}" "sfdocs-repo-build-config/exec-process.js"
-  #download_config_file "${git_commands_file_url}" "sfdocs-repo-build-config/git-commands.sh"
-  #download_config_file "${vscode_settings_file_url}" "sfdocs-repo-build-config/.vscode/settings.json"
 }
 
 download_sfdocs_build_config
