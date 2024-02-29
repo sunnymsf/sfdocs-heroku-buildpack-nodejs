@@ -142,12 +142,12 @@ download_sfdocs_build_config() {
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
   mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config/.vscode
   download_config_file "${package_json_file_url}" "sfdocs-repo-build-config/package.json"
-  download_config_file "${yarn_lock_file_url}" "sfdocs-repo-build-config/yarn.lock"
+  download_config_file "${yarn_lock_file_url}" "yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
   download_config_file "${file_sync_file_url}" "sfdocs-repo-build-config/file-sync.js"
-  download_config_file "${file_exec_process_file_url}" "sfdocs-repo-build-config/exec-process.js"
-  download_config_file "${git_commands_file_url}" "sfdocs-repo-build-config/git-commands.sh"
-  download_config_file "${vscode_settings_file_url}" "sfdocs-repo-build-config/.vscode/settings.json"
+  #download_config_file "${file_exec_process_file_url}" "sfdocs-repo-build-config/exec-process.js"
+  #download_config_file "${git_commands_file_url}" "sfdocs-repo-build-config/git-commands.sh"
+  #download_config_file "${vscode_settings_file_url}" "sfdocs-repo-build-config/.vscode/settings.json"
 }
 
 download_sfdocs_build_config
