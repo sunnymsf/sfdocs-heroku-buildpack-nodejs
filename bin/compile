@@ -137,11 +137,11 @@ download_sfdocs_build_config() {
   rm -f $BUILD_DIR/yarn.lock
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
-  mkdir tmp
-  download_config_file "${package_json_file_url}" "tmp/package.json"
+  mkdir utilities
+  download_config_file "${package_json_file_url}" "utilities/package.json"
   download_config_file "${yarn_lock_file_url}" "yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
-  download_config_file "${file_sync_file_url}" "tmp/file-sync.js"
+  download_config_file "${file_sync_file_url}" "utilities/file-sync.js"
 }
 
 download_sfdocs_build_config
