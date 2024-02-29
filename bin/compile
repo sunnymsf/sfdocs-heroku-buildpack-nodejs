@@ -128,6 +128,7 @@ download_sfdocs_build_config() {
   local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/yarn.lock"
   local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
   local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/keep-package-json-properties/file-sync.js"
+  local vscode_settings_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/.vscode/settings.json"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
     return
@@ -137,11 +138,12 @@ download_sfdocs_build_config() {
   rm -f $BUILD_DIR/yarn.lock
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
-  mkdir ${BUILD_DIR}/utilities
+  mkdir -p ${BUILD_DIR}/utilities/.vscode
   download_config_file "${package_json_file_url}" "utilities/package.json"
   download_config_file "${yarn_lock_file_url}" "utilities/yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
   download_config_file "${file_sync_file_url}" "utilities/file-sync.js"
+  download_config_file "${vscode_settings_file_url}" "utilities/.vscode/settings.json"
 }
 
 download_sfdocs_build_config
