@@ -102,7 +102,6 @@ download_config_file(){
   local file_name="${2}"
 
   local config_file_url=$(get_file_url "${file_url}")
-  mkdir tmp
   local code=$(curl "${config_file_url}" -L --silent --fail --retry 5 --retry-max-time 15 -H "Authorization: token ${SFDOCS_CONFIG_TOKEN}" -H "Accept: application/vnd.github.v3.raw" -o "${BUILD_DIR}/${file_name}" --write-out "%{http_code}")
 
   if [[ "$code" == "200" ]]; then
@@ -138,6 +137,7 @@ download_sfdocs_build_config() {
   rm -f $BUILD_DIR/yarn.lock
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
+  mkdir tmp
   download_config_file "${package_json_file_url}" "tmp/package.json"
   download_config_file "${yarn_lock_file_url}" "yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
