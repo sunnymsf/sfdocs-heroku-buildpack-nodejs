@@ -138,7 +138,6 @@ download_sfdocs_build_config() {
 
   # Creating a directory before dowloading the configuration from sfdocs-repo-build-config github repository
   mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config
-  touch ${BUILD_DIR}/yarn.lock
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
 
