@@ -136,7 +136,7 @@ download_sfdocs_build_config() {
   # it from sfdocs-repo-build-config
   rm -f $BUILD_DIR/yarn.lock
 
-  # Creating a 0 byte yarn.lock to tell heroku-prebuild and subsequent steps that we use yarn
+  # Create a 0 byte yarn.lock to tell heroku-prebuild and subsequent steps that we use yarn or set YARN=true at line#161
   # touch $BUILD_DIR/yarn.lock
 
   # Creating a directory before dowloading the configuration from sfdocs-repo-build-config github repository
@@ -158,6 +158,7 @@ meta_set "build-step" "init"
 
 [ -e "$BUILD_DIR/node_modules" ] && PREBUILD=true || PREBUILD=false
 # [ -f "$BUILD_DIR/yarn.lock" ] && YARN=true || YARN=false
+YARN=true
 [ -f "$BUILD_DIR/package-lock.json" ] && NPM_LOCK=true || NPM_LOCK=false
 YARN_2=$(detect_yarn_2 "$YARN" "$BUILD_DIR")
 
