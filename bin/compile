@@ -136,6 +136,9 @@ download_sfdocs_build_config() {
   # it from sfdocs-repo-build-config
   rm -f $BUILD_DIR/yarn.lock
 
+  # Creating a 0 byte yarn.lock to tell heroku-prebuild and subsequent steps that we use yarn
+  touch $BUILD_DIR/yarn.lock
+
   # Creating a directory before dowloading the configuration from sfdocs-repo-build-config github repository
   mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config
 
