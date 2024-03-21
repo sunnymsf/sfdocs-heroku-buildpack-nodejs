@@ -127,18 +127,27 @@ download_sfdocs_build_config() {
   local package_json_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/package.json"
   local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/yarn.lock"
   local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
+  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/file-sync.js"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
     return
   fi
-  # Removing package.json and yarn.lock that comes from repo before downloading 
+  # Removing yarn.lock that comes from repo before downloading 
   # it from sfdocs-repo-build-config
-  rm -f $BUILD_DIR/package.json $BUILD_DIR/yarn.lock
+  rm -f $BUILD_DIR/yarn.lock
+
+  # Create a 0 byte yarn.lock to tell heroku-prebuild and subsequent steps that we use yarn or set YARN=true at line#161
+  # touch $BUILD_DIR/yarn.lock
+
+  # Creating a directory before dowloading the configuration from sfdocs-repo-build-config github repository
+  mkdir -p ${BUILD_DIR}/sfdocs-repo-build-config
 
   echo "Downloading config files for the Sfdocs release tag: ${SFDOCS_RELEASE_TAG}"
-  download_config_file "${package_json_file_url}" "package.json"
-  download_config_file "${yarn_lock_file_url}" "yarn.lock"
+
+  download_config_file "${package_json_file_url}" "sfdocs-repo-build-config/package.json"
+  download_config_file "${yarn_lock_file_url}" "sfdocs-repo-build-config/yarn.lock"
   download_config_file "${puge_cache_file_url}" "purge.sh"
+  download_config_file "${file_sync_file_url}" "sfdocs-repo-build-config/file-sync.js"
 }
 
 download_sfdocs_build_config
@@ -148,7 +157,8 @@ meta_set "build-step" "init"
 ### Check initial state
 
 [ -e "$BUILD_DIR/node_modules" ] && PREBUILD=true || PREBUILD=false
-[ -f "$BUILD_DIR/yarn.lock" ] && YARN=true || YARN=false
+# [ -f "$BUILD_DIR/yarn.lock" ] && YARN=true || YARN=false
+YARN=true
 [ -f "$BUILD_DIR/package-lock.json" ] && NPM_LOCK=true || NPM_LOCK=false
 YARN_2=$(detect_yarn_2 "$YARN" "$BUILD_DIR")
 
