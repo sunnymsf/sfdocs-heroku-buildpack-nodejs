@@ -1,0 +1,79 @@
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  Test_Result:
+    runs-on: ubuntu-latest
+    env:
+      appId: ${{ vars.HEROKU_APP_ID }}
+      herokuApi: ${{ vars.HEROKU_API }}
+      kolkarabiApi: ${{ vars.KOLKRABBI_API }}
+    steps:
+
+      
+  
+
+      - name: Remove Older Build pack
+        env:
+         HEROKU_TOKEN: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          echo "REMOVE_OLDER_BUILDPACK=$(curl  -o /dev/null -s -w "%{http_code}\n" -n -X PUT "$herokuApi/$appId/buildpack-installations" -H "Content-Type: application/json" -H "Accept: application/vnd.heroku+json; version=3" -H  "Authorization: $HEROKU_TOKEN" -d '{"updates":[]}')" >> $GITHUB_ENV
+   
+          
+      - name: Add a newer Build Pack of current branch
+        env:
+         HEROKU_TOKEN: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          echo "UPDATE_OLDER_BUILDPACK=$(curl  -o /dev/null -s -w "%{http_code}\n" -n -X PUT "$herokuApi/$appId/buildpack-installations" -H "Content-Type: application/json" -H "Accept: application/vnd.heroku+json; version=3" -H  "Authorization: $HEROKU_TOKEN" -d "{\"updates\":[{ \"buildpack\": "\"https://github.com/SalesforceDocs-Bot/sfdocs-heroku-buildpack-nodejs#${GITHUB_HEAD_REF}\""}]}")" >> $GITHUB_ENV
+
+
+
+
+      - name: Trigger a herokubuild on sfdocs-help
+        env:
+         HEROKU_TOKEN: ${{ secrets.HEROKU_API_KEY }}      
+        run: |
+          echo "TRIGGER_BUILD=$(curl  -n -X POST "$kolkarabiApi/$appId/github/push" -H "Content-Type: application/json" -H "Accept: application/vnd.heroku+json; version=3" -H  "Authorization: $HEROKU_TOKEN" -d '{"branch": "main"}')" >> $GITHUB_ENV
+
+      - name: Wait for build to pass
+        env:
+         HEROKU_TOKEN: ${{ secrets.HEROKU_API_KEY }}       
+        timeout-minutes: 5
+        run: |
+            echo '${{ fromJson(env.TRIGGER_BUILD).build.id }}'
+            echo "$herokuApi/$appId/builds/${{ fromJson(env.TRIGGER_BUILD).build.id }}"
+            echo "value here "
+            echo "STATUS='$(curl  -n -X GET "$herokuApi/$appId/builds/${{ fromJson(env.TRIGGER_BUILD).build.id }}" -H "Content-Type: application/json" -H "Accept: application/vnd.heroku+json; version=3" -H  "Authorization: $HEROKU_TOKEN" | jq .status ) " >> $GITHUB_ENV
+            echo 'Local Variable '
+            echo "$STATUS"
+            while [[ $STATUS != *"succeed"* ]];
+            do 
+            echo "Build Still running .... here"
+            echo $STATUS
+            
+            export STATUS=$(curl  -n -X GET "$herokuApi/$appId/builds/${{ fromJson(env.TRIGGER_BUILD).build.id }}" -H "Content-Type: application/json" -H "Accept: application/vnd.heroku+json; version=3" -H  "Authorization: $HEROKU_TOKEN" | jq .status )
+            echo $STATUS
+            sleep 5s
+            done
+
+      - name: Checking Status http_codes
+        run: |
+          if [ "$UPDATE_OLDER_BUILDPACK" -eq 200 ]; then
+            echo "Build result is 200. Deploying..."
+            # Your deployment command here
+          else
+            echo "Build result is not 200. Not able to connect to heroku.Kindly check heroku credentials in Secrets "
+            exit 1
+          fi          
+          if [ "$REMOVE_OLDER_BUILDPACK" -eq 200 ]; then
+            echo "Build result is 200. Deploying..."
+            echo "$STATUS"
+            # Your deployment command here
+          else
+            echo "Build result is not 200. Not able to connect to heroku.Kindly check heroku credentials in Secrets "
+            exit 1
+          fi         
+      
+
