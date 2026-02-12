@@ -177,45 +177,6 @@ download_sfdocs_build_config() {
 
 download_sfdocs_build_config
 
-# Sync global resources (resources-global repository)
-# This needs to happen after downloading build config but before the main build
-if [[ -f "${BUILD_DIR}/sfdocs-config.yml" ]]; then
-  echo "-----> Syncing global resources..."
-  export DYNO=true  # Indicate Heroku environment
-  
-  # Run the sync script from sfdocs-repo-build-config
-  if [[ -f "${BUILD_DIR}/sfdocs-repo-build-config/sync-global-resources.js" ]]; then
-    cd "${BUILD_DIR}"
-    
-    # Temporarily disable errexit so sync failures don't fail the build
-    set +e
-    # Run sync and capture output for RESOURCES_GLOBAL_DIR
-    SYNC_OUTPUT=$(node sfdocs-repo-build-config/sync-global-resources.js 2>&1)
-    SYNC_EXIT=$?
-    # Re-enable errexit
-    set -e
-    
-    echo "$SYNC_OUTPUT"
-    
-    if [ $SYNC_EXIT -eq 0 ]; then
-      # Extract RESOURCES_GLOBAL_DIR from output (for build-time use)
-      RESOURCES_GLOBAL_DIR=$(echo "$SYNC_OUTPUT" | grep "RESOURCES_GLOBAL_DIR=" | sed 's/.*RESOURCES_GLOBAL_DIR=//')
-      
-      if [[ -n "$RESOURCES_GLOBAL_DIR" ]]; then
-        export RESOURCES_GLOBAL_DIR
-        echo "       Exported RESOURCES_GLOBAL_DIR=${RESOURCES_GLOBAL_DIR}"
-        echo "       (Runtime: app-start script will set it again)"
-      fi
-    else
-      echo "       ⚠️  Failed to sync global resources (exit code: $SYNC_EXIT)"
-      echo "       Build will continue, but externalRef: content may not work"
-      echo "       Check if resources-global repo/branch exists and is accessible"
-    fi
-  else
-    echo "       sync-global-resources.js not found, skipping"
-  fi
-fi
-
 meta_set "build-step" "init"
 
 ### Check initial state
@@ -372,6 +333,45 @@ install_bins() {
 
 header "Installing binaries" | output "$LOG_FILE"
 install_bins | output "$LOG_FILE"
+
+# Sync global resources (resources-global repository)
+# This needs to happen after Node.js is installed but before dependencies
+if [[ -f "${BUILD_DIR}/sfdocs-config.yml" ]]; then
+  header "Syncing global resources" | output "$LOG_FILE"
+  export DYNO=true  # Indicate Heroku environment
+  
+  # Run the sync script from sfdocs-repo-build-config
+  if [[ -f "${BUILD_DIR}/sfdocs-repo-build-config/sync-global-resources.js" ]]; then
+    cd "${BUILD_DIR}"
+    
+    # Temporarily disable errexit so sync failures don't fail the build
+    set +e
+    # Run sync and capture output for RESOURCES_GLOBAL_DIR
+    SYNC_OUTPUT=$(node sfdocs-repo-build-config/sync-global-resources.js 2>&1)
+    SYNC_EXIT=$?
+    # Re-enable errexit
+    set -e
+    
+    echo "$SYNC_OUTPUT" | output "$LOG_FILE"
+    
+    if [ $SYNC_EXIT -eq 0 ]; then
+      # Extract RESOURCES_GLOBAL_DIR from output (for build-time use)
+      RESOURCES_GLOBAL_DIR=$(echo "$SYNC_OUTPUT" | grep "RESOURCES_GLOBAL_DIR=" | sed 's/.*RESOURCES_GLOBAL_DIR=//')
+      
+      if [[ -n "$RESOURCES_GLOBAL_DIR" ]]; then
+        export RESOURCES_GLOBAL_DIR
+        echo "       Exported RESOURCES_GLOBAL_DIR=${RESOURCES_GLOBAL_DIR}" | output "$LOG_FILE"
+        echo "       (Runtime: app-start script will set it again)" | output "$LOG_FILE"
+      fi
+    else
+      echo "       ⚠️  Failed to sync global resources (exit code: $SYNC_EXIT)" | output "$LOG_FILE"
+      echo "       Build will continue, but externalRef: content may not work" | output "$LOG_FILE"
+      echo "       Check if resources-global repo/branch exists and is accessible" | output "$LOG_FILE"
+    fi
+  else
+    echo "       sync-global-resources.js not found, skipping" | output "$LOG_FILE"
+  fi
+fi
 
 if [[ -z "$USE_NPM_INSTALL" ]]; then
   if [[ "$(should_use_npm_ci "$BUILD_DIR")" == "true" ]]; then
