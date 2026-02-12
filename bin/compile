@@ -137,11 +137,13 @@ get_file_url() {
 # Downloading config files (package.json, yarn.lock) from sfdocs-repo-build-config repo
 download_sfdocs_build_config() {
   export_env_dir "$ENV_DIR"
-  local package_json_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/package.json"
-  local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/yarn.lock"
-  local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
-  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/file-sync.js"
-  local file_npmrc_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/template/npmrcfile"
+  # POC: Using sunny/resources-global-1 branch for testing
+  # TODO: Change to 'main' before production merge
+  local package_json_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/package.json"
+  local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/yarn.lock"
+  local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/purge.sh"
+  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/file-sync.js"
+  local file_npmrc_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/template/npmrcfile"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
     return
@@ -163,9 +165,52 @@ download_sfdocs_build_config() {
   download_config_file "${puge_cache_file_url}" "purge.sh"
   download_config_file "${file_sync_file_url}" "sfdocs-repo-build-config/file-sync.js"
   download_config_file "${file_npmrc_file_url}" ".npmrc"
+  
+  # Download sync-global-resources script
+  # POC: Using sunny/resources-global-1 branch for testing
+  # TODO: Change to 'main' before production merge
+  local sync_resources_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/sync-global-resources.js"
+  download_config_file "${sync_resources_url}" "sfdocs-repo-build-config/sync-global-resources.js"
+  
+  # Download validate-global-resources script
+  local validate_resources_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/validate-global-resources.js"
+  download_config_file "${validate_resources_url}" "sfdocs-repo-build-config/validate-global-resources.js"
 }
 
 download_sfdocs_build_config
+
+# Sync global resources (resources-global repository)
+# This needs to happen after downloading build config but before the main build
+if [[ -f "${BUILD_DIR}/sfdocs-config.yml" ]]; then
+  echo "-----> Syncing global resources..."
+  export DYNO=true  # Indicate Heroku environment
+  
+  # Run the sync script from sfdocs-repo-build-config
+  if [[ -f "${BUILD_DIR}/sfdocs-repo-build-config/sync-global-resources.js" ]]; then
+    cd "${BUILD_DIR}"
+    
+    # Run sync and capture output for RESOURCES_GLOBAL_DIR
+    SYNC_OUTPUT=$(node sfdocs-repo-build-config/sync-global-resources.js 2>&1)
+    SYNC_EXIT=$?
+    
+    echo "$SYNC_OUTPUT"
+    
+    if [ $SYNC_EXIT -eq 0 ]; then
+      # Extract RESOURCES_GLOBAL_DIR from output (for build-time use)
+      RESOURCES_GLOBAL_DIR=$(echo "$SYNC_OUTPUT" | grep "RESOURCES_GLOBAL_DIR=" | sed 's/.*RESOURCES_GLOBAL_DIR=//')
+      
+      if [[ -n "$RESOURCES_GLOBAL_DIR" ]]; then
+        export RESOURCES_GLOBAL_DIR
+        echo "       Exported RESOURCES_GLOBAL_DIR=${RESOURCES_GLOBAL_DIR}"
+        echo "       (Runtime: app-start script will set it again)"
+      fi
+    else
+      echo "       Failed to sync global resources, continuing build"
+    fi
+  else
+    echo "       sync-global-resources.js not found, skipping"
+  fi
+fi
 
 meta_set "build-step" "init"
 
