@@ -187,9 +187,13 @@ if [[ -f "${BUILD_DIR}/sfdocs-config.yml" ]]; then
   if [[ -f "${BUILD_DIR}/sfdocs-repo-build-config/sync-global-resources.js" ]]; then
     cd "${BUILD_DIR}"
     
+    # Temporarily disable errexit so sync failures don't fail the build
+    set +e
     # Run sync and capture output for RESOURCES_GLOBAL_DIR
     SYNC_OUTPUT=$(node sfdocs-repo-build-config/sync-global-resources.js 2>&1)
     SYNC_EXIT=$?
+    # Re-enable errexit
+    set -e
     
     echo "$SYNC_OUTPUT"
     
@@ -203,7 +207,9 @@ if [[ -f "${BUILD_DIR}/sfdocs-config.yml" ]]; then
         echo "       (Runtime: app-start script will set it again)"
       fi
     else
-      echo "       Failed to sync global resources, continuing build"
+      echo "       ⚠️  Failed to sync global resources (exit code: $SYNC_EXIT)"
+      echo "       Build will continue, but externalRef: content may not work"
+      echo "       Check if resources-global repo/branch exists and is accessible"
     fi
   else
     echo "       sync-global-resources.js not found, skipping"
