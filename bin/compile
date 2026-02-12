@@ -172,9 +172,7 @@ download_sfdocs_build_config() {
   local sync_resources_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/sync-global-resources.js"
   download_config_file "${sync_resources_url}" "sfdocs-repo-build-config/sync-global-resources.js"
   
-  # Download validate-global-resources script
-  local validate_resources_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/validate-global-resources.js"
-  download_config_file "${validate_resources_url}" "sfdocs-repo-build-config/validate-global-resources.js"
+  # Note: validate-global-resources.js not needed for Heroku builds (only for local yarn validate)
 }
 
 download_sfdocs_build_config
