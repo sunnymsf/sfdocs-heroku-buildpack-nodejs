@@ -137,11 +137,13 @@ get_file_url() {
 # Downloading config files (package.json, yarn.lock) from sfdocs-repo-build-config repo
 download_sfdocs_build_config() {
   export_env_dir "$ENV_DIR"
-  local package_json_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/package.json"
-  local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/yarn.lock"
-  local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/purge.sh"
-  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/file-sync.js"
-  local file_npmrc_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/main/template/npmrcfile"
+  # POC: Using sunny/resources-global-1 branch for testing
+  # TODO: Change to 'main' before production merge
+  local package_json_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/package.json"
+  local yarn_lock_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/yarn.lock"
+  local puge_cache_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/purge.sh"
+  local file_sync_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/file-sync.js"
+  local file_npmrc_file_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/template/npmrcfile"
 
   if [[ -z "${SFDOCS_RELEASE_TAG}" ]]; then
     return
@@ -163,6 +165,12 @@ download_sfdocs_build_config() {
   download_config_file "${puge_cache_file_url}" "purge.sh"
   download_config_file "${file_sync_file_url}" "sfdocs-repo-build-config/file-sync.js"
   download_config_file "${file_npmrc_file_url}" ".npmrc"
+  
+  # Download sync-reused-repos script
+  # POC: Using sunny/resources-global-1 branch for testing
+  # TODO: Change to 'main' before production merge
+  local sync_repos_url="https://raw.githubusercontent.com/salesforcedocs/sfdocs-repo-build-config/sunny/resources-global-1/sync-reused-repos.js"
+  download_config_file "${sync_repos_url}" "sfdocs-repo-build-config/sync-reused-repos.js"
 }
 
 download_sfdocs_build_config
@@ -323,6 +331,35 @@ install_bins() {
 
 header "Installing binaries" | output "$LOG_FILE"
 install_bins | output "$LOG_FILE"
+
+# Sync reused repositories
+# This needs to happen after Node.js is installed but before dependencies
+if [[ -f "${BUILD_DIR}/sfdocs-config.yml" ]]; then
+  header "Syncing reused repositories" | output "$LOG_FILE"
+  export DYNO=true  # Indicate Heroku environment
+  
+  # Run the sync script from sfdocs-repo-build-config
+  if [[ -f "${BUILD_DIR}/sfdocs-repo-build-config/sync-reused-repos.js" ]]; then
+    cd "${BUILD_DIR}"
+    
+    # Temporarily disable errexit so sync failures don't fail the build
+    set +e
+    SYNC_OUTPUT=$(node sfdocs-repo-build-config/sync-reused-repos.js 2>&1)
+    SYNC_EXIT=$?
+    # Re-enable errexit
+    set -e
+    
+    echo "$SYNC_OUTPUT" | output "$LOG_FILE"
+    
+    if [ $SYNC_EXIT -ne 0 ]; then
+      echo "       ⚠️  Failed to sync reused repos (exit code: $SYNC_EXIT)" | output "$LOG_FILE"
+      echo "       Build will continue, but externalRef: content may not work" | output "$LOG_FILE"
+      echo "       Check if configured repos/branches exist and are accessible" | output "$LOG_FILE"
+    fi
+  else
+    echo "       sync-reused-repos.js not found, skipping" | output "$LOG_FILE"
+  fi
+fi
 
 if [[ -z "$USE_NPM_INSTALL" ]]; then
   if [[ "$(should_use_npm_ci "$BUILD_DIR")" == "true" ]]; then
